@@ -55,6 +55,11 @@ function taskA()
     fig
 end
 
+function testDense(N)
+    H = Hermitian(dense_ising(N, 1.0))
+    eigvals(H)
+end
+
 ## PART B
 
 function H_z!(N, u, v)
@@ -114,8 +119,6 @@ function taskB()
         Es[i, :] .= eigs[begin:N_E]
     end
 
-
-
     println("Plotting...")
 
     fig = Figure()
@@ -138,6 +141,6 @@ function test(N)
 
     eigs, vecs, info = eigsolve(H_op, rand(2^N), 16, :SR, Lanczos())
 
-    print(eigs)
+    eigs
 end
 
