@@ -93,9 +93,9 @@ end
 
 function taskB()
 
-    N = 14
+    N = 4
     N_h = 100
-    N_E = 5
+    N_E = 16
     
     hs = LinRange(-2, 2, N_h)
     Es = zeros(N_h, N_E)
@@ -109,11 +109,12 @@ function taskB()
             v
         end
 
-        eigs, vecs, info = eigsolve(H_op, rand(2^N), N_E + 5, :SR, Lanczos())
+        eigs, vecs, info = eigsolve(H_op, rand(2^N), N_E, :SR, Lanczos())
 
         Es[i, :] .= eigs[begin:N_E]
-        Es[i, :] .-= Es[i, 1]
     end
+
+
 
     println("Plotting...")
 
@@ -126,5 +127,17 @@ function taskB()
 
     axislegend()
     fig
+end
+
+function test(N)
+    function H_op(u) 
+        v = zeros(2^N) 
+        H!(N, 1.0, u, v)
+        v
+    end
+
+    eigs, vecs, info = eigsolve(H_op, rand(2^N), 16, :SR, Lanczos())
+
+    print(eigs)
 end
 
