@@ -42,29 +42,7 @@ function main(N)
         s2r[state + 1] = rep
     end
 
-    for (repr, s) in orbits
-        print("($repr)")
-        print(bitstring(repr)[end - N + 1:end])
-        print(" : ")
-
-        for state in s
-            print(" $(state_to_str(N, state)) : ($(s2r[state + 1]), $(s2d[state + 1])),")
-        end
-
-        println()
-    end
-
-
-    for s in 0:n_states - 1
-        s_r = roll(N, s2d[s + 1], s2r[s + 1])
-        if s != s_r
-            println("$(state_to_str(N, s)) != $(state_to_str(N, s_r))")
-            println("rep = $(state_to_str(N, s2r[s + 1]))")
-            println("distance = $(s2d[s + 1])")
-        end
-    end
-
-    vals = Vector{ComplexF64}()
+    vals = Vector{Float64}()
 
     max_size = 0
     total = 0
@@ -73,12 +51,12 @@ function main(N)
         lam = exp(2π * im * k / N)
 
         orbs = Vector{Int64}()
-
-        println(k == 0 ? "λ = 1:" : "λ = exp(2πi * $k/$N):")
+        r2o = Dict{Int64,Int64}()
 
         for (repr, orb) in orbits
             if abs(lam^length(orb) - 1) < 1e-6
                 push!(orbs, repr)
+                r2o[repr] = length(orbs)
             end
         end
         
@@ -88,7 +66,6 @@ function main(N)
         for i in 1:size
             s = orbs[i]
             H[i,i] += (2 * count_ones(~(s ⊻ (s >> 1 | (s & 1) << (N - 1))) & (2^N - 1)) - N)
-            println("- $(bitstring(s)[end - N + 1:end])\n E_z = $(real(H[i,i]))")
         end
   
         for alpha in 1:size
@@ -107,7 +84,7 @@ function main(N)
                     s_beta = gamma
                     
                     if s_beta in orbs
-                        beta = indexin(s_beta, orbs)[1]
+                        beta = r2o[gamma]
                         n_beta = length(orbits[s_beta])
  
                         H[beta, alpha] += lam^(j - zeta) / sqrt(n_alpha * n_beta)
@@ -118,27 +95,28 @@ function main(N)
         
         max_size = max(size, max_size)
         total += size
-        
-        display(H)
 
-        println(ishermitian(H))
-        
-        append!(vals, eigvals(H))
-    end
-    
-    println("largest block size = $max_size vs $(2^N)")
-    println("total = $total")
-    
-    
-    sort(real.(vals))
+        append!(vals, eigvals(Hermitian(H)))
     end
 
-function compare(N)
-    @time t = testDense(N)
+    sort!(vals)
+
+    dedup = [vals[1]]
+
+    for i in 2:n_states
+        if abs(vals[i] - dedup[end]) > 1e-6
+            push!(dedup, vals[i])
+        end
+    end
+
+    dedup
+
+end
+
+function test_block(N)
     @time m = main(N)
 
-    scatter(t, label="Dense")
-    scatter!(m, label="Block Diagonal")
+    scatter(m, label="Block Diagonal")
 
     axislegend()
 

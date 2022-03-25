@@ -57,7 +57,17 @@ end
 
 function testDense(N)
     H = Hermitian(dense_ising(N, 1.0))
-    eigvals(H)
+    
+    vals = eigvals(H)
+    dedup = [vals[1]]
+
+    for i in 2:length(vals)
+        if abs(vals[i] - dedup[end]) > 1e-6
+            push!(dedup, vals[i])
+        end
+    end
+
+    dedup
 end
 
 ## PART B
@@ -139,8 +149,8 @@ function test(N)
         v
     end
 
-    eigs, vecs, info = eigsolve(H_op, rand(2^N), 16, :SR, Lanczos())
+    vals, vecs, info = eigsolve(H_op, rand(2^N), 16, :SR, Lanczos())
 
-    eigs
+    vals
 end
 
