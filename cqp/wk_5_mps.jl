@@ -186,10 +186,12 @@ function vidal_product(LambdasBra, GammasBra, LambdasKet, GammasKet)
         bral = LambdasBra[i]
         brag = GammasBra[i]
 
-        
+        @einsum B[i, j] := A[k, l] * ketg[l, s, i] * ketl[i, i] * brag[k, s, j] * bral[j, j]
+
+        A = B
     end
 
-
-
-    display(A)
+    tr(A)
 end
+
+
